@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -78,6 +78,21 @@ export default function Artifacts({ session, realtimeArtifacts = [], className, 
   const [editingIndex, setEditingIndex] = useState(-1);
   const [editContent, setEditContent] = useState('');
   const [editedArtifacts, setEditedArtifacts] = useState({});
+  const [currentTab, setCurrentTab] = useState("0");
+  const [previousArtifactCount, setPreviousArtifactCount] = useState(0);
+
+  // Auto-focus on the newest artifact when artifacts are added
+  useEffect(() => {
+    if (mergedArtifacts.length > 0) {
+      // Only auto-focus if we have more artifacts than before (new artifact added)
+      if (mergedArtifacts.length > previousArtifactCount) {
+        // Set focus to the newest artifact (last in the array)
+        const newestIndex = mergedArtifacts.length - 1;
+        setCurrentTab(newestIndex.toString());
+      }
+      setPreviousArtifactCount(mergedArtifacts.length);
+    }
+  }, [mergedArtifacts.length, previousArtifactCount]);
 
   // Get the current artifacts with any edits applied
   const currentArtifacts = useMemo(() => {
@@ -173,7 +188,7 @@ export default function Artifacts({ session, realtimeArtifacts = [], className, 
         </div>
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto">
-        <Tabs defaultValue="0" className="w-full">
+        <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
           <TabsList className="bg-transparent">
             {mergedArtifacts.map((artifact, index) => (
               <TabsTrigger key={index} value={`${index}`} className="capitalize">
@@ -305,7 +320,84 @@ function ArtifactCard({ artifact, index, session, setEditedArtifacts, editingInd
         <MarkdownPreview
           source={artifact.content}
           style={{ background: 'transparent', color: '#e0e0e0' }}
+          className="markdown-preview-artifact"
           components={{
+            table: ({ children, ...props }) => (
+              <div style={{ 
+                overflowX: 'auto', 
+                marginTop: '0.5rem', 
+                marginBottom: '0.5rem',
+                backgroundColor: '#0a0a0a',
+                border: '1px solid #333333',
+                borderRadius: '0.5rem',
+                padding: '0.5rem'
+              }}>
+                <table 
+                  {...props} 
+                  style={{
+                    borderCollapse: 'collapse',
+                    width: '100%',
+                    minWidth: 'max-content',
+                    fontSize: '0.875rem',
+                    backgroundColor: 'transparent'
+                  }}
+                >
+                  {children}
+                </table>
+              </div>
+            ),
+            thead: ({ children, ...props }) => (
+              <thead 
+                {...props} 
+                style={{
+                  backgroundColor: 'rgba(75, 85, 99, 0.1)',
+                  borderBottom: '1px solid #374151'
+                }}
+              >
+                {children}
+              </thead>
+            ),
+            tbody: ({ children, ...props }) => (
+              <tbody {...props}>
+                {children}
+              </tbody>
+            ),
+            tr: ({ children, ...props }) => (
+              <tr 
+                {...props} 
+                style={{
+                  borderBottom: '1px solid #374151'
+                }}
+              >
+                {children}
+              </tr>
+            ),
+            th: ({ children, ...props }) => (
+              <th 
+                {...props} 
+                style={{
+                  padding: '0.75rem',
+                  textAlign: 'left',
+                  fontWeight: '600',
+                  color: '#e5e7eb',
+                  fontSize: '0.875rem'
+                }}
+              >
+                {children}
+              </th>
+            ),
+            td: ({ children, ...props }) => (
+              <td 
+                {...props} 
+                style={{
+                  padding: '0.75rem',
+                  color: '#9ca3af',
+                  fontSize: '0.875rem'
+                }}
+              >
+                {children}
+              </td>
+            ),
             a: ({ children, href, ...props }) => {
               const faviconUrl = getFaviconUrl(href);
               return (

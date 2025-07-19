@@ -220,7 +220,8 @@ button:focus-visible {
 
 /* Custom styling for tables rendered inside Markdown preview components to ensure consistent dark theme */
 .markdown-preview-tool-output table,
-.markdown-preview-thought table {
+.markdown-preview-thought table,
+.markdown-preview-artifact table {
   background-color: #0a0a0a !important;
   border: 1px solid #333333;
   border-radius: 0.5rem;
@@ -231,7 +232,9 @@ button:focus-visible {
 .markdown-preview-tool-output th,
 .markdown-preview-tool-output td,
 .markdown-preview-thought th,
-.markdown-preview-thought td {
+.markdown-preview-thought td,
+.markdown-preview-artifact th,
+.markdown-preview-artifact td {
   background-color: transparent !important;
   color: #9ca3af;
   padding: 0.5rem;

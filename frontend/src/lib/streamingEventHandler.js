@@ -286,6 +286,9 @@ export async function streamCRMResponse(
         onArtifactCreated?.(evt);
         onArtifact?.(evt.artifact);
         break;
+      case 'artifact':
+        onArtifact?.(evt.artifact);
+        break;
       // Final response
       case 'final_response':
         onFinalResponse?.(evt);

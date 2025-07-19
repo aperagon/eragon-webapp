@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import ChatHistory from './ChatHistory';
 import Artifacts from './Artifacts';
 
@@ -12,6 +12,17 @@ export default function SessionWorkspace({
   toggleEvent
 }) {
   const [isArtifactsCollapsed, setIsArtifactsCollapsed] = useState(true);
+
+  // Extract real-time artifacts from eventHistory
+  const realtimeArtifacts = useMemo(() => {
+    return eventHistory
+      .filter(event => event.type === 'artifact')
+      .map(event => ({
+        title: event.title,
+        content: event.content,
+        type: event.artifact_type || 'file'
+      }));
+  }, [eventHistory]);
 
   // Auto-expand artifacts panel when artifact events are received
   useEffect(() => {
@@ -63,7 +74,7 @@ export default function SessionWorkspace({
         <div className="h-full min-h-0">
           <Artifacts
             session={session}
-            realtimeArtifacts={[]}
+            realtimeArtifacts={realtimeArtifacts}
             className="h-full"
             onClose={handleCloseArtifacts}
           />
