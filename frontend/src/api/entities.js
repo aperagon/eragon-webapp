@@ -1,6 +1,6 @@
 import { API_ENDPOINTS, getRequestOptions, apiCall, API_BASE_URL } from './config';
 // Import streaming helpers
-import { streamResponse, streamCRMResponse } from '../lib/streamingEventHandler';
+import { streamAccountIntelResponse, streamCRMResponse } from '../lib/streamingEventHandler';
 
 // Session Entity
 export const Session = {
@@ -153,7 +153,7 @@ export const AccountIntel = async ({ account = null, query, session_id = null, c
 
   try {
     // Wrap streaming in a try/catch so consumers receive proper errors
-    await streamResponse(
+    await streamAccountIntelResponse(
       { account, query, session_id },
       {
         onReasoningStart: callbacks.onReasoningStart,

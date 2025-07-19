@@ -7,6 +7,10 @@ export const API_ENDPOINTS = {
   ACCOUNTS: `${API_BASE_URL}/api/accounts`,
   OPPORTUNITIES: `${API_BASE_URL}/api/opportunities`,
   USERS: `${API_BASE_URL}/api/users`,
+  
+  // Streaming endpoints
+  ACCOUNT_INTEL: `${API_BASE_URL}/api/accounts/intel`,
+  CRM_WORKFLOW: `${API_BASE_URL}/api/crm/workflow`,
 };
 
 // Common request options
