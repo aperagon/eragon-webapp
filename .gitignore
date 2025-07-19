@@ -1,0 +1,24 @@
+# Files to exclude as requested
+workflow_state.md
+CLAUDE.local.md
+.claude/
+backend/venv/
+
+# Common exclusions
+.DS_Store
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+*.so
+.coverage
+.pytest_cache/
+.mypy_cache/
+.vscode/
+.idea/
+*.log
+.env
+node_modules/
+dist/
+build/
