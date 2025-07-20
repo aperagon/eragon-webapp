@@ -249,3 +249,81 @@ def parse_chart_result(result: str) -> Tuple[str, str]:
     
     # If all parsing fails, return the original result as both values
     return result, result
+
+
+def parse_salesforce_data(raw_data: str) -> str:
+    """
+    Parse Salesforce tool call result data and convert to markdown table format.
+    
+    Args:
+        raw_data: Raw string data from Salesforce tool call result
+        
+    Returns:
+        Formatted markdown table string
+    """
+    # Extract records using regex - handle the specific format
+    record_pattern = r'Record \d+:\s*\n((?:\s+\w+\.?\w*: .*\n?)*)'
+    records = re.findall(record_pattern, raw_data)
+    
+    if not records:
+        return "No records found in the data."
+    
+    # Parse the first record to get column names
+    first_record = records[0]
+    field_pattern = r'\s+(\w+\.?\w*): (.+)'
+    fields = re.findall(field_pattern, first_record)
+    
+    if not fields:
+        return "Could not parse field structure from data."
+    
+    # Extract column names and clean them
+    columns = [field[0] for field in fields]
+    
+    # Parse all records
+    table_data = []
+    for record in records:
+        row_data = {}
+        for field_name, value in re.findall(field_pattern, record):
+            row_data[field_name] = value.strip()
+        if row_data:  # Only add non-empty rows
+            table_data.append(row_data)
+    
+    # Generate markdown table
+    markdown_table = generate_markdown_table(columns, table_data)
+    
+    return markdown_table
+
+
+def generate_markdown_table(columns: List[str], data: List[Dict[str, Any]]) -> str:
+    """
+    Generate markdown table from column names and data.
+    
+    Args:
+        columns: List of column names
+        data: List of dictionaries containing row data
+        
+    Returns:
+        Formatted markdown table string
+    """
+    if not data:
+        return "No data to display."
+    
+    # Create header
+    header = "| " + " | ".join(columns) + " |"
+    separator = "| " + " | ".join(["---"] * len(columns)) + " |"
+    
+    # Create rows
+    rows = []
+    for row in data:
+        row_values = []
+        for col in columns:
+            value = row.get(col, "")
+            # Escape pipe characters in values
+            value = str(value).replace("|", "\\|")
+            row_values.append(value)
+        rows.append("| " + " | ".join(row_values) + " |")
+    
+    # Combine all parts
+    table_lines = [header, separator] + rows
+    
+    return "\n".join(table_lines)
