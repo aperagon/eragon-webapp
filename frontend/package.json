@@ -48,6 +48,7 @@
     "framer-motion": "^12.4.7",
     "google-auth-library": "^10.1.0",
     "googleapis": "^153.0.0",
+    "html2canvas": "^1.4.1",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.475.0",
     "markdown-it": "^14.1.0",
