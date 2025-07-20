@@ -89,6 +89,7 @@ export default function CommandInput({
   const [entityData, setEntityData] = useState({});
   const [isLoadingEntities, setIsLoadingEntities] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedSampleIndex, setSelectedSampleIndex] = useState(-1);
   const [dataFetched, setDataFetched] = useState(false);
 
   const textareaRef = useRef(null);
@@ -159,8 +160,16 @@ export default function CommandInput({
     }
   }, [selectedIndex, showSuggestions]);
 
+  // Reset sample selection when instruction changes
+  useEffect(() => {
+    if (instruction.trim()) {
+      setSelectedSampleIndex(-1);
+    }
+  }, [instruction]);
 
   const handleKeyDown = (e) => {
+    const showSampleQueries = !instruction.trim() && sampleQueries[selectedMode];
+    
     if (showSuggestions) {
       const entityTypes = Object.entries(ENTITY_TYPES);
       const currentEntities = selectedEntityType ? (entityData[selectedEntityType] || []).filter(name => 
@@ -199,6 +208,25 @@ export default function CommandInput({
         e.preventDefault();
         setSelectedEntityType(null);
         setSelectedIndex(0);
+      }
+    } else if (showSampleQueries && !instruction.trim()) {
+      // Handle navigation for sample queries
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const maxIndex = sampleQueries[selectedMode].length - 1;
+        setSelectedSampleIndex(prev => prev === -1 ? 0 : Math.min(prev + 1, maxIndex));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedSampleIndex(prev => Math.max(prev - 1, -1));
+      } else if (e.key === 'Enter' && selectedSampleIndex >= 0) {
+        e.preventDefault();
+        handleSampleQueryClick(sampleQueries[selectedMode][selectedSampleIndex]);
+      } else if (e.key === 'Escape' && selectedSampleIndex >= 0) {
+        e.preventDefault();
+        setSelectedSampleIndex(-1);
+      } else if (e.key === 'Enter' && !e.shiftKey && selectedSampleIndex === -1) {
+        e.preventDefault();
+        onSubmit('run');
       }
     } else if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -418,7 +446,11 @@ export default function CommandInput({
             <button
               key={index}
               onClick={() => handleSampleQueryClick(query)}
-              className="w-full text-left p-4 text-[#cccccc] hover:text-white hover:bg-[#2a2a2a] transition-colors duration-150 text-sm"
+              className={`w-full text-left p-4 transition-colors duration-150 text-sm ${
+                index === selectedSampleIndex 
+                  ? 'text-white bg-[#2a2a2a] border-l-2 border-[#cccccc]' 
+                  : 'text-[#cccccc] hover:text-white hover:bg-[#2a2a2a]'
+              }`}
             >
               {query}
             </button>
