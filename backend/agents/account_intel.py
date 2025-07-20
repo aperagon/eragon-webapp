@@ -6,12 +6,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from agno.agent import Agent
 from agno.tools.reasoning import ReasoningTools
 from agno.storage.sqlite import SqliteStorage
-from utils.tools import query_salesforce_sync
+from utils import query_salesforce_sync
 from agno.models.anthropic import Claude
 from typing import Dict, Optional, AsyncIterator, Any
 from datetime import datetime
 from dataclasses import asdict
-from .config import AGENT_CONFIGS, COMMON_AGENT_SETTINGS
+from config.agents import AGENT_INSTRUCTIONS, COMMON_AGENT_SETTINGS
 import anthropic
 from agno.reasoning.step import NextAction
 
@@ -63,8 +63,8 @@ async def get_account_intel(account: Optional[str], query: str, session_id: str)
     session_agent = Agent(
         name="Account Intelligence Agent",
         model=Claude(id=COMMON_AGENT_SETTINGS["model_id"]),
-        description=AGENT_CONFIGS["account_intel"]["description"],
-        instructions=AGENT_CONFIGS["account_intel"]["instructions"],
+        description=AGENT_INSTRUCTIONS["account_intel"]["description"],
+        instructions=AGENT_INSTRUCTIONS["account_intel"]["instructions"],
         tools=[
             ReasoningTools(add_instructions=True),
             {

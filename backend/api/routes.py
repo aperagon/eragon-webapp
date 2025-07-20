@@ -15,7 +15,7 @@ from api.schemas import (
     UserUpdate,
     OpportunityResponse,
 )
-from utils.tools import query_salesforce
+from utils import query_salesforce
 from agents.account_intel import get_account_intel
 from agents.crm import get_crm_response
 from database_async import get_async_db

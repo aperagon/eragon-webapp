@@ -1,7 +1,10 @@
 """Agent configuration and settings."""
 
+import json
 from typing import Dict, Any
 from dataclasses import dataclass
+
+from config.settings import settings
 
 
 @dataclass
@@ -9,7 +12,7 @@ class AgentConfig:
     """Configuration for AI agents."""
     
     # Model settings
-    MODEL_ID: str = "claude-sonnet-4-20250514"
+    MODEL_ID: str = settings.ANTHROPIC_MODEL
     TEMPERATURE: float = 0.1
     MAX_TOKENS: int = 4096
     
@@ -88,6 +91,12 @@ Key Guidelines:
 Remember: You are providing strategic intelligence to inform critical business decisions. Be thorough, accurate, and insightful."""
     },
     
+    "crm": {
+        "name": "CRM Agent",
+        "description": "CRM Agent that can create, update, and delete Salesforce records.",
+        "instructions": """You are a CRM expert. You are given a query and an account. You need to respond to the query based on the account. You can use the tools provided to you to get the information you need. You can also use the web search tool to get the information you need. You can also use the Salesforce tool to get the information you need. You can also use the Salesforce tool to create a new record. You can also use the Salesforce tool to update an existing record. You can also use the Salesforce tool to delete an existing record. You can also use the Salesforce tool to get the information you need."""
+    },
+    
     "salesforce_fetch": {
         "name": "Salesforce Data Fetcher",
         "description": "Expert at querying Salesforce data and presenting it in clear, tabular formats",
@@ -153,5 +162,68 @@ IMPORTANT: Tabular data should be formatted as markdown tables and marked as art
     }
 }
 
+VIZ_INSTRUCTIONS = """
+You are a data visualization expert. I need you to create an interactive Plotly chart from Salesforce data.
+
+**Chart Requirements:**
+- Create an interactive Plotly chart using plotly.graph_objects or plotly.express
+- Make the chart visually appealing with proper colors, labels, and formatting
+- Include hover information and interactivity
+- Return ONLY the Python code that creates the Plotly figure and converts it to HTML
+
+**CRITICAL INSTRUCTIONS:**
+1. Analyze the sample data structure above to understand the data format
+2. In your code, use the variable `data` (NOT the sample data shown above)
+3. The `data` variable contains the FULL dataset and is already available in your execution environment
+4. Choose the most appropriate chart type based on the data structure
+5. Handle missing or null values appropriately
+6. Use meaningful axis labels and titles derived from the query context
+7. Add hover information for better user experience
+
+**Required Code Structure:**
+```python
+import plotly.graph_objects as go
+import plotly.express as px
+import pandas as pd
+
+# Use the 'data' variable that contains the full dataset
+# DO NOT recreate the data array - use the existing 'data' variable
+df = pd.DataFrame(data)
+
+# Your data processing and chart creation code here
+# Create the chart using df or data variable
+fig = # your plotly figure
+
+# Convert to HTML
+chart_html = fig.to_html(include_plotlyjs='cdn', div_id="salesforce-chart")
+```
+IMPORTANT:
+
+- Use data variable for the full dataset (already available)
+- DO NOT hardcode data arrays in your response
+- The sample data above is only for understanding structure
+- Only return the Python code, no explanations or markdown formatting.
+- Plotly figure has no attribute called update_yaxis, it is update_yaxes
+
+**Original User Query:**
+{query}
+
+**Data Structure Analysis (sample for understanding):**
+{data_metadata}
+
+**Sample Data (for structure reference only):**
+{data_sample}
+"""
+
 # Global agent config instance
 agent_config = AgentConfig()
+
+# Common agent settings for backward compatibility
+COMMON_AGENT_SETTINGS = {
+    "model_id": agent_config.MODEL_ID,
+    "storage_table": agent_config.STORAGE_TABLE,
+    "storage_db": agent_config.STORAGE_DB,
+    "add_history_to_messages": agent_config.ADD_HISTORY_TO_MESSAGES,
+    "add_datetime_to_instructions": agent_config.ADD_DATETIME_TO_INSTRUCTIONS,
+    "show_tool_calls": agent_config.SHOW_TOOL_CALLS
+}

@@ -25,6 +25,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import HtmlRenderer from "@/components/HtmlRenderer";
 
 // Function to extract domain from URL
 const extractDomain = (url) => {
@@ -317,105 +318,112 @@ function ArtifactCard({ artifact, index, session, setEditedArtifacts, editingInd
           </div>
         </div>
       ) : (
-        <MarkdownPreview
-          source={artifact.content}
-          style={{ background: 'transparent', color: '#e0e0e0' }}
-          className="markdown-preview-artifact"
-          components={{
-            table: ({ children, ...props }) => (
-              <div style={{ 
-                overflowX: 'auto', 
-                marginTop: '0.5rem', 
-                marginBottom: '0.5rem',
-                backgroundColor: '#0a0a0a',
-                border: '1px solid #333333',
-                borderRadius: '0.5rem',
-                padding: '0.5rem'
-              }}>
-                <table 
+        artifact.type === 'chart' ? (
+          <HtmlRenderer 
+            htmlContent={artifact.content}
+            className="chart-container"
+          />
+        ) : (
+          <MarkdownPreview
+            source={artifact.content}
+            style={{ background: 'transparent', color: '#e0e0e0' }}
+            className="markdown-preview-artifact"
+            components={{
+              table: ({ children, ...props }) => (
+                <div style={{ 
+                  overflowX: 'auto', 
+                  marginTop: '0.5rem', 
+                  marginBottom: '0.5rem',
+                  backgroundColor: '#0a0a0a',
+                  border: '1px solid #333333',
+                  borderRadius: '0.5rem',
+                  padding: '0.5rem'
+                }}>
+                  <table 
+                    {...props} 
+                    style={{
+                      borderCollapse: 'collapse',
+                      width: '100%',
+                      minWidth: 'max-content',
+                      fontSize: '0.875rem',
+                      backgroundColor: 'transparent'
+                    }}
+                  >
+                    {children}
+                  </table>
+                </div>
+              ),
+              thead: ({ children, ...props }) => (
+                <thead 
                   {...props} 
                   style={{
-                    borderCollapse: 'collapse',
-                    width: '100%',
-                    minWidth: 'max-content',
-                    fontSize: '0.875rem',
-                    backgroundColor: 'transparent'
+                    backgroundColor: 'rgba(75, 85, 99, 0.1)',
+                    borderBottom: '1px solid #374151'
                   }}
                 >
                   {children}
-                </table>
-              </div>
-            ),
-            thead: ({ children, ...props }) => (
-              <thead 
-                {...props} 
-                style={{
-                  backgroundColor: 'rgba(75, 85, 99, 0.1)',
-                  borderBottom: '1px solid #374151'
-                }}
-              >
-                {children}
-              </thead>
-            ),
-            tbody: ({ children, ...props }) => (
-              <tbody {...props}>
-                {children}
-              </tbody>
-            ),
-            tr: ({ children, ...props }) => (
-              <tr 
-                {...props} 
-                style={{
-                  borderBottom: '1px solid #374151'
-                }}
-              >
-                {children}
-              </tr>
-            ),
-            th: ({ children, ...props }) => (
-              <th 
-                {...props} 
-                style={{
-                  padding: '0.75rem',
-                  textAlign: 'left',
-                  fontWeight: '600',
-                  color: '#e5e7eb',
-                  fontSize: '0.875rem'
-                }}
-              >
-                {children}
-              </th>
-            ),
-            td: ({ children, ...props }) => (
-              <td 
-                {...props} 
-                style={{
-                  padding: '0.75rem',
-                  color: '#9ca3af',
-                  fontSize: '0.875rem'
-                }}
-              >
-                {children}
-              </td>
-            ),
-            a: ({ children, href, ...props }) => {
-              const faviconUrl = getFaviconUrl(href);
-              return (
-                <a href={href} {...props} style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  {faviconUrl && (
-                    <img
-                      src={faviconUrl}
-                      alt=""
-                      style={{ width: '16px', height: '16px', marginRight: '6px', verticalAlign: 'middle' }}
-                      onError={(e) => { e.target.style.display = 'none'; }}
-                    />
-                  )}
+                </thead>
+              ),
+              tbody: ({ children, ...props }) => (
+                <tbody {...props}>
                   {children}
-                </a>
-              );
-            }
-          }}
-        />
+                </tbody>
+              ),
+              tr: ({ children, ...props }) => (
+                <tr 
+                  {...props} 
+                  style={{
+                    borderBottom: '1px solid #374151'
+                  }}
+                >
+                  {children}
+                </tr>
+              ),
+              th: ({ children, ...props }) => (
+                <th 
+                  {...props} 
+                  style={{
+                    padding: '0.75rem',
+                    textAlign: 'left',
+                    fontWeight: '600',
+                    color: '#e5e7eb',
+                    fontSize: '0.875rem'
+                  }}
+                >
+                  {children}
+                </th>
+              ),
+              td: ({ children, ...props }) => (
+                <td 
+                  {...props} 
+                  style={{
+                    padding: '0.75rem',
+                    color: '#9ca3af',
+                    fontSize: '0.875rem'
+                  }}
+                >
+                  {children}
+                </td>
+              ),
+              a: ({ children, href, ...props }) => {
+                const faviconUrl = getFaviconUrl(href);
+                return (
+                  <a href={href} {...props} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    {faviconUrl && (
+                      <img
+                        src={faviconUrl}
+                        alt=""
+                        style={{ width: '16px', height: '16px', marginRight: '6px', verticalAlign: 'middle' }}
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    )}
+                    {children}
+                  </a>
+                );
+              }
+            }}
+          />
+        )
       )}
     </div>
   );

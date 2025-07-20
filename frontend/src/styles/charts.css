@@ -1,0 +1,55 @@
+/* Plotly chart container styles */
+.chart-container {
+  width: 100%;
+  min-height: 400px;
+  max-height: 800px;
+  overflow: hidden;
+  background-color: transparent;
+}
+
+/* Ensure Plotly charts scale properly */
+.chart-container .plotly-graph-div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Dark theme adjustments for Plotly charts */
+.chart-container .plotly-graph-div .bg {
+  fill: transparent !important;
+}
+
+.chart-container .plotly-graph-div .legend {
+  background-color: rgba(26, 26, 26, 0.8) !important;
+}
+
+/* Responsive chart sizing */
+@media (max-width: 768px) {
+  .chart-container {
+    min-height: 300px;
+    max-height: 500px;
+  }
+}
+
+/* Loading state for charts */
+.chart-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: #e0e0e0;
+}
+
+.chart-loading::after {
+  content: "Loading chart...";
+  font-size: 1rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}

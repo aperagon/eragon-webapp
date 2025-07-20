@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import chart styles */
+@import './styles/charts.css';
+
 
 /* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;

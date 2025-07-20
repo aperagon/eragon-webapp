@@ -10,14 +10,16 @@ from agno.agent import Agent
 from agno.models.anthropic import Claude
 from agno.storage.sqlite import SqliteStorage
 from agno.tools.reasoning import ReasoningTools
-from typing import Dict, Any, AsyncIterator, Optional
+from typing import Dict, Any, AsyncIterator
 from datetime import datetime
-from .config import COMMON_AGENT_SETTINGS, AGENT_CONFIGS    
-from utils.tools import (
+from config.agents import AGENT_INSTRUCTIONS, COMMON_AGENT_SETTINGS
+from utils import (
     query_salesforce_sync, 
     create_salesforce_record_sync, 
     update_salesforce_record_sync, 
-    delete_salesforce_record_sync
+    delete_salesforce_record_sync,
+    query_salesforce_and_chart,
+    parse_chart_result
 )
 from agno.reasoning.step import NextAction
 import anthropic
@@ -28,7 +30,8 @@ TOOL_NAME_TO_UI_NAME = {
     "create_salesforce_record_sync": "Created Salesforce Record",
     "update_salesforce_record_sync": "Updated Salesforce Record",
     "delete_salesforce_record_sync": "Deleted Salesforce Record",
-    "analyze": "Analyzed the data"
+    "analyze": "Analyzed the data",
+    "query_salesforce_and_chart": "Queried Salesforce and Created a Chart"
 }
 
 
@@ -70,8 +73,8 @@ async def get_crm_response(query: str, session_id: str) -> AsyncIterator[Dict[st
     session_agent = Agent(
         name="CRM Agent",
         model=Claude(id=COMMON_AGENT_SETTINGS["model_id"]),
-        description=AGENT_CONFIGS["crm"]["description"],
-        instructions=AGENT_CONFIGS["crm"]["instructions"],
+        description=AGENT_INSTRUCTIONS["crm"]["description"],
+        instructions=AGENT_INSTRUCTIONS["crm"]["instructions"],
         tools=[
             ReasoningTools(add_instructions=True),
             {
@@ -79,10 +82,11 @@ async def get_crm_response(query: str, session_id: str) -> AsyncIterator[Dict[st
                 "name": "web_search",
                 "max_uses": 5
             },
-            query_salesforce_sync,
+            #query_salesforce_sync,
             create_salesforce_record_sync,
             update_salesforce_record_sync,
-            delete_salesforce_record_sync    
+            delete_salesforce_record_sync,
+            query_salesforce_and_chart
         ],
         storage=SqliteStorage(
             table_name=f"session_{session_id}", 
@@ -177,20 +181,42 @@ async def get_crm_response(query: str, session_id: str) -> AsyncIterator[Dict[st
             
             # Skip the "think" tool as it's already handled by reasoning events
             if tool_name and tool_name != "think":
-                if tool_name == "query_salesforce_sync":
+                if tool_name == "query_salesforce_and_chart":
+                    # Parse the tuple result to extract chart HTML and Salesforce data
+                    chart_html, salesforce_data = parse_chart_result(result)
+                    
                     yield {
                         "type": "tool_completed",
                         "tool": TOOL_NAME_TO_UI_NAME[tool_name],
                         "timestamp": datetime.now().isoformat()
                     }
-                    yield {
-                        "type": "artifact",
-                        "artifact": {
-                            "title": "Salesforce Query Result",
-                            "content": result
-                        },
-                        "timestamp": datetime.now().isoformat()
-                    }
+
+                    # Yield the Salesforce data as an artifact
+                    if salesforce_data and not salesforce_data.startswith("❌"):
+                        yield {
+                            "type": "artifact",
+                            "artifact": {
+                                "title": "Salesforce Data",
+                                "content": salesforce_data,
+                                "type": "data"
+                            },
+                            "timestamp": datetime.now().isoformat()
+                        }
+                    
+                    # Yield the chart as an artifact
+                    if chart_html and not chart_html.startswith("❌"):
+                        yield {
+                            "type": "artifact",
+                            "artifact": {
+                                "title": "Interactive Chart",
+                                "content": chart_html,
+                                "type": "chart"
+                            },
+                            "timestamp": datetime.now().isoformat()
+                        }
+                    
+                    
+                    
                     continue
                 yield {
                     "type": "tool_completed",
