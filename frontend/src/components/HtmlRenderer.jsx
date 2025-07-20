@@ -1,7 +1,50 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 
-const HtmlRenderer = ({ htmlContent, className = '' }) => {
+const HtmlRenderer = forwardRef(({ htmlContent, className = '' }, ref) => {
   const containerRef = useRef(null);
+  const resizeObserverRef = useRef(null);
+
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    resizeCharts: () => {
+      resizeCharts();
+    }
+  }));
+
+  const resizeCharts = () => {
+    if (!containerRef.current) return;
+    
+    // Find all Plotly chart elements and trigger resize
+    const plotlyElements = containerRef.current.querySelectorAll('.plotly-graph-div');
+    plotlyElements.forEach(element => {
+      if (window.Plotly && element._fullData) {
+        try {
+          // Get the current container dimensions
+          const container = element.closest('.chart-container') || element.parentElement;
+          const width = container ? container.offsetWidth : element.offsetWidth;
+          const height = container ? container.offsetHeight : element.offsetHeight;
+          
+          // Only resize if dimensions have actually changed
+          if (width > 0 && height > 0) {
+            window.Plotly.relayout(element, {
+              width: width,
+              height: height
+            });
+          }
+        } catch (error) {
+          console.warn('Error resizing Plotly chart:', error);
+        }
+      }
+    });
+
+    // Also handle other chart types that might be present
+    const chartElements = containerRef.current.querySelectorAll('[id*="chart"], [class*="chart"]');
+    chartElements.forEach(element => {
+      // Trigger a resize event on the element
+      const resizeEvent = new Event('resize', { bubbles: true });
+      element.dispatchEvent(resizeEvent);
+    });
+  };
 
   useEffect(() => {
     if (!htmlContent || !containerRef.current) return;
@@ -56,12 +99,39 @@ const HtmlRenderer = ({ htmlContent, className = '' }) => {
           }
         }
       }
+
+      // Resize charts after scripts are loaded
+      setTimeout(resizeCharts, 100);
+      
+      // Also resize charts after a longer delay to handle async chart rendering
+      setTimeout(resizeCharts, 500);
+      setTimeout(resizeCharts, 1000);
     };
 
     loadScripts();
 
+    // Set up ResizeObserver to watch for container size changes
+    if (window.ResizeObserver) {
+      resizeObserverRef.current = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.target === containerRef.current) {
+            // Debounce resize events
+            clearTimeout(resizeObserverRef.current.resizeTimeout);
+            resizeObserverRef.current.resizeTimeout = setTimeout(() => {
+              resizeCharts();
+            }, 100);
+          }
+        }
+      });
+
+      resizeObserverRef.current.observe(containerRef.current);
+    }
+
     // Cleanup function
     return () => {
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect();
+      }
       if (containerRef.current) {
         containerRef.current.innerHTML = '';
       }
@@ -91,6 +161,8 @@ const HtmlRenderer = ({ htmlContent, className = '' }) => {
       style={{ width: '100%', height: '100%' }}
     />
   );
-};
+});
+
+HtmlRenderer.displayName = 'HtmlRenderer';
 
 export default HtmlRenderer;

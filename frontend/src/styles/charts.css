@@ -5,10 +5,18 @@
   max-height: 800px;
   overflow: hidden;
   background-color: transparent;
+  position: relative;
 }
 
 /* Ensure Plotly charts scale properly */
 .chart-container .plotly-graph-div {
+  width: 100% !important;
+  height: 100% !important;
+  position: relative !important;
+}
+
+/* Force Plotly to recalculate layout */
+.chart-container .plotly-graph-div .svg-container {
   width: 100% !important;
   height: 100% !important;
 }
@@ -52,4 +60,16 @@
   50% {
     opacity: 1;
   }
+}
+
+/* Ensure html-renderer container is responsive */
+.html-renderer {
+  width: 100% !important;
+  height: 100% !important;
+  position: relative;
+}
+
+/* Force chart elements to be responsive */
+.html-renderer * {
+  max-width: 100% !important;
 }

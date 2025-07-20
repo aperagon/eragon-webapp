@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import ChatHistory from './ChatHistory';
 import Artifacts from './Artifacts';
 
@@ -13,6 +13,7 @@ export default function SessionWorkspace({
 }) {
   const [isArtifactsCollapsed, setIsArtifactsCollapsed] = useState(true);
   const [isChatHistoryCollapsed, setIsChatHistoryCollapsed] = useState(false);
+  const artifactsRef = useRef(null);
 
   // Extract real-time artifacts from eventHistory
   const realtimeArtifacts = useMemo(() => {
@@ -53,6 +54,41 @@ export default function SessionWorkspace({
     setIsChatHistoryCollapsed(false);
   };
 
+  // Trigger chart resizing when layout changes
+  useEffect(() => {
+    const resizeCharts = () => {
+      if (artifactsRef.current && artifactsRef.current.resizeCharts) {
+        // Use a timeout to ensure the layout change is complete
+        setTimeout(() => {
+          artifactsRef.current.resizeCharts();
+        }, 100);
+      }
+    };
+
+    // Resize charts when layout state changes
+    resizeCharts();
+  }, [isChatHistoryCollapsed, isArtifactsCollapsed]);
+
+  // Handle window resize events
+  useEffect(() => {
+    const handleWindowResize = () => {
+      if (artifactsRef.current && artifactsRef.current.resizeCharts) {
+        // Debounce resize events
+        clearTimeout(handleWindowResize.resizeTimeout);
+        handleWindowResize.resizeTimeout = setTimeout(() => {
+          artifactsRef.current.resizeCharts();
+        }, 250);
+      }
+    };
+
+    window.addEventListener('resize', handleWindowResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleWindowResize);
+      clearTimeout(handleWindowResize.resizeTimeout);
+    };
+  }, []);
+
   return (
     // Use two equal-height rows in single-column mode so that each panel can
     // grow/shrink independently and expose its own scrollbar. The `min-h-0`
@@ -85,6 +121,7 @@ export default function SessionWorkspace({
       {!isArtifactsCollapsed && (
         <div className="h-full min-h-0">
           <Artifacts
+            ref={artifactsRef}
             session={session}
             realtimeArtifacts={realtimeArtifacts}
             className="h-full"

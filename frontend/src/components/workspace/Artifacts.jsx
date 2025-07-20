@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -55,7 +55,7 @@ const artifactIcons = {
 };
 
 // Main component - remove tabs and directly render artifacts
-export default function Artifacts({ session, realtimeArtifacts = [], className, isGenerating = false, onClose, onOpenChatHistory }) {
+const Artifacts = forwardRef(({ session, realtimeArtifacts = [], className, isGenerating = false, onClose, onOpenChatHistory }, ref) => {
   // Merge session artifacts with realtime artifacts, avoiding duplicates
   const sessionArtifacts = session?.artifacts || [];
   const mergedArtifacts = useMemo(() => {
@@ -82,6 +82,18 @@ export default function Artifacts({ session, realtimeArtifacts = [], className, 
   const [editedArtifacts, setEditedArtifacts] = useState({});
   const [currentTab, setCurrentTab] = useState("0");
   const [previousArtifactCount, setPreviousArtifactCount] = useState(0);
+  const chartRefs = useRef({});
+
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    resizeCharts: () => {
+      Object.values(chartRefs.current).forEach(ref => {
+        if (ref && ref.current && ref.current.resizeCharts) {
+          ref.current.resizeCharts();
+        }
+      });
+    }
+  }));
 
   // Auto-focus on the newest artifact when artifacts are added
   useEffect(() => {
@@ -95,6 +107,22 @@ export default function Artifacts({ session, realtimeArtifacts = [], className, 
       setPreviousArtifactCount(mergedArtifacts.length);
     }
   }, [mergedArtifacts.length, previousArtifactCount]);
+
+  // Resize charts when layout changes (e.g., chat history opens/closes)
+  useEffect(() => {
+    const resizeCharts = () => {
+      Object.values(chartRefs.current).forEach(ref => {
+        if (ref && ref.current && ref.current.resizeCharts) {
+          ref.current.resizeCharts();
+        }
+      });
+    };
+
+    // Resize charts after a short delay to ensure layout is complete
+    const timeoutId = setTimeout(resizeCharts, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [currentTab]); // Re-run when tab changes
 
   // Get the current artifacts with any edits applied
   const currentArtifacts = useMemo(() => {
@@ -226,17 +254,17 @@ export default function Artifacts({ session, realtimeArtifacts = [], className, 
           </TabsList>
                      {currentArtifacts.map((artifact, index) => (
              <TabsContent key={index} value={`${index}`} className="mt-4">
-               <ArtifactCard artifact={artifact} index={index} session={session} setEditedArtifacts={setEditedArtifacts} editingIndex={editingIndex} setEditingIndex={setEditingIndex} editContent={editContent} setEditContent={setEditContent} />
+               <ArtifactCard artifact={artifact} index={index} session={session} setEditedArtifacts={setEditedArtifacts} editingIndex={editingIndex} setEditingIndex={setEditingIndex} editContent={editContent} setEditContent={setEditContent} chartRefs={chartRefs} />
              </TabsContent>
            ))}
         </Tabs>
       </CardContent>
     </Card>
   );
-}
+});
 
 // Keep ArtifactCard, remove ActionCard
-function ArtifactCard({ artifact, index, session, setEditedArtifacts, editingIndex, setEditingIndex, editContent, setEditContent }) {
+function ArtifactCard({ artifact, index, session, setEditedArtifacts, editingIndex, setEditingIndex, editContent, setEditContent, chartRefs }) {
   const Icon = artifactIcons[artifact.type] || FileText;
   const { toast } = useToast();
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -347,6 +375,13 @@ function ArtifactCard({ artifact, index, session, setEditedArtifacts, editingInd
       ) : (
         artifact.type === 'chart' ? (
           <HtmlRenderer 
+            ref={(el) => {
+              if (el) {
+                chartRefs.current[index] = el;
+              } else {
+                delete chartRefs.current[index];
+              }
+            }}
             htmlContent={artifact.content}
             className="chart-container"
           />
@@ -455,3 +490,7 @@ function ArtifactCard({ artifact, index, session, setEditedArtifacts, editingInd
     </div>
   );
 }
+
+Artifacts.displayName = 'Artifacts';
+
+export default Artifacts;
