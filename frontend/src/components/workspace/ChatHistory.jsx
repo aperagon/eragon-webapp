@@ -29,7 +29,8 @@ import {
   FileCode,
   Copy,
   Check,
-  Package
+  Package,
+  X
 } from "lucide-react";
 import { getWorkflowConfig } from '@/config/workflowConfigs';
 import MarkdownPreview from "@uiw/react-markdown-preview";
@@ -72,7 +73,7 @@ const WorkflowUpdate = ({ workflowState, className }) => {
   );
 };
 
-export default function ChatHistory({ session, conversationHistory = [], className, onSend, workflowState, isRunning, isLoading, eventHistory = [], toggleEvent, onArtifactClick }) {
+export default function ChatHistory({ session, conversationHistory = [], className, onSend, workflowState, isRunning, isLoading, eventHistory = [], toggleEvent, onArtifactClick, onClose }) {
   const [expandedSteps, setExpandedSteps] = React.useState(new Set());
   const [newMessage, setNewMessage] = React.useState("");
   const [copiedId, setCopiedId] = React.useState(null);
@@ -189,9 +190,21 @@ export default function ChatHistory({ session, conversationHistory = [], classNa
   return (
     <Card className={`bg-[#1a1a1a] border-[#333333] flex flex-col h-full ${className}`}>
       <CardHeader className="pb-6 flex-shrink-0">
-        <CardTitle className="text-white text-heading-2 flex items-center">
-          <MessageSquare className="w-6 h-6 mr-3 text-indigo-400" />
-          <span className="text-white">Chat</span>
+        <CardTitle className="text-white text-heading-2 flex items-center justify-between">
+          <div className="flex items-center">
+            <MessageSquare className="w-6 h-6 mr-3 text-indigo-400" />
+            <span className="text-white">Chat</span>
+          </div>
+          {onClose && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="text-[#cccccc] hover:text-white hover:bg-[#333333] p-2"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          )}
         </CardTitle>
       </CardHeader>
       {/* Scrollable history */}

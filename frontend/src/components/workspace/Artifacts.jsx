@@ -16,7 +16,8 @@ import {
   CheckCircle,
   ArrowUpRight,
   Pencil,
-  X
+  X,
+  MessageSquare
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MarkdownPreview from "@uiw/react-markdown-preview";
@@ -54,7 +55,7 @@ const artifactIcons = {
 };
 
 // Main component - remove tabs and directly render artifacts
-export default function Artifacts({ session, realtimeArtifacts = [], className, isGenerating = false, onClose }) {
+export default function Artifacts({ session, realtimeArtifacts = [], className, isGenerating = false, onClose, onOpenChatHistory }) {
   // Merge session artifacts with realtime artifacts, avoiding duplicates
   const sessionArtifacts = session?.artifacts || [];
   const mergedArtifacts = useMemo(() => {
@@ -109,14 +110,26 @@ export default function Artifacts({ session, realtimeArtifacts = [], className, 
     return (
       <Card className={`bg-[#1a1a1a] border-[#333333] flex flex-col h-full ${className}`}>
         <CardHeader className="pb-6">
-          <CardTitle className="text-white text-heading-2 flex items-center justify-between">
-            <div className="flex items-center">
-              <Package className="w-6 h-6 mr-3 text-indigo-400" />
-              <div>
-                <span className="text-white">Artifacts & Outputs</span>
-                <p className="text-body text-[#e0e0e0] mt-1 font-normal">Generated insights and deliverables</p>
-              </div>
+                  <CardTitle className="text-white text-heading-2 flex items-center justify-between">
+          <div className="flex items-center">
+            <Package className="w-6 h-6 mr-3 text-indigo-400" />
+            <div>
+              <span className="text-white">Artifacts & Outputs</span>
+              <p className="text-body text-[#e0e0e0] mt-1 font-normal">Generated insights and deliverables</p>
             </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            {onOpenChatHistory && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onOpenChatHistory}
+                className="text-[#cccccc] hover:text-white hover:bg-[#333333] p-2"
+                title="Open Chat History"
+              >
+                <MessageSquare className="w-4 h-4" />
+              </Button>
+            )}
             {onClose && (
               <Button
                 variant="ghost"
@@ -127,7 +140,8 @@ export default function Artifacts({ session, realtimeArtifacts = [], className, 
                 <X className="w-4 h-4" />
               </Button>
             )}
-          </CardTitle>
+          </div>
+        </CardTitle>
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto">
           {isGenerating ? (
@@ -160,16 +174,29 @@ export default function Artifacts({ session, realtimeArtifacts = [], className, 
             <Package className="w-6 h-6 mr-3 text-indigo-400" />
             <span className="text-white">Artifacts & Outputs</span>
           </div>
-          {onClose && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="text-[#cccccc] hover:text-white hover:bg-[#333333] p-2"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
+          <div className="flex items-center space-x-2">
+            {onOpenChatHistory && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onOpenChatHistory}
+                className="text-[#cccccc] hover:text-white hover:bg-[#333333] p-2"
+                title="Open Chat History"
+              >
+                <MessageSquare className="w-4 h-4" />
+              </Button>
+            )}
+            {onClose && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="text-[#cccccc] hover:text-white hover:bg-[#333333] p-2"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
         </CardTitle>
         <div className="flex items-center space-x-4 mt-2">
           <Badge 
